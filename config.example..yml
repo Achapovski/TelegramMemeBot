@@ -1,0 +1,41 @@
+bot:
+  TOKEN: "2756187256:DSGSDgSdgs5d4gs65dg48sdgsSDSG"
+
+db:
+  CONNECTION: "postgresql+asyncpg"
+  USER: "user"
+  PASSWORD: "password"
+  HOST: "localhost"
+  PORT: 1234
+  DATABASE: "database_name"
+  IS_ECHO: "no"
+
+  DSN: "postgresql+asyncpg://user:password@localhost/database_name"
+
+redis:
+  HOST: "localhost"
+  PORT: 1234
+  DB_DEFAULT_NUMBER: 0
+  DB_STORAGE_NUMBER: 1
+  DB_STATE_NUMBER: 2
+
+rabbitmq:
+  HOST: localhost
+  PORT: 12345
+  LOGIN: login
+  PASSWORD: password
+
+  AMQP_DSN: "amqp://login:password@localhost"
+  EXCHANGES:
+    message_deleter:
+      name: exchange_name
+      type: direct
+  QUEUES:
+    message_deleter:
+      name: queue_name
+
+s3:
+  ACCESS_KEY: sdgs78dg7sd98gsud0g9sd9gsa
+  SECRET_KEY: dgs8dgus97d8sjd9hsd8g7shd8
+  ENDPOINT_URL: https://s3.gis-1.storage.selcloud.ru
+  BUCKET: bucket_name
