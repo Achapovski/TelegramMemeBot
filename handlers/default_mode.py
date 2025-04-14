@@ -64,6 +64,9 @@ async def get_meme_title(message: Message, obj_repo: S3Client, state: FSMContext
     await state.set_state(FSMStatest.add_meme)
 
 
+"DEV MOMENT"
+
+
 @router.message(StateFilter(FSMTestState.moke))
 async def test_handler(message: Message, msg_service: DeleteMessageService):
     await message.answer("Ok")
