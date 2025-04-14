@@ -45,8 +45,8 @@ class S3Client:
         # FIXME: Необходимо заменить на реализацию на основе приватного контейнера
         return quote(string=fr"https://43ec0fd9-e13c-4fed-a8c9-1d615f3b69a8.selstorage.ru/{key.to_str()}", safe=":/")
 
-    async def get_object_link(self, key: str, prefix: str):
-        return f"{self.config["endpoint_url"]}/{self.bucket}/{PrefixKey(key=key, prefix=prefix).to_str()}"
+    async def get_object_link(self, key: PrefixKey):
+        return f"{self.config["endpoint_url"]}/{self.bucket}/{key.to_str()}"
 
     async def get_all_objects(self, prefix: str) -> list[str]:
         async with self.get_client() as client:

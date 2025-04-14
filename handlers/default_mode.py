@@ -47,6 +47,7 @@ async def print_update_type(message: Message, state: FSMContext):
 async def get_meme_title(message: Message, obj_service: ObjectLoadService,
                          state: FSMContext, file_repo: FileRepository, bot: Bot):
     file_meta = await state.get_data()
+    # FIXME: Получать конкретно file_meta через state.get_value()
     file_meta = FileMeta(**file_meta.get("file_meta"))
     file = await load_object_from_telegram_api(bot=bot, file_id=file_meta.id)
 
@@ -56,7 +57,7 @@ async def get_meme_title(message: Message, obj_service: ObjectLoadService,
         unique_prefix=str(message.from_user.id)
     )
 
-    obj_url = await obj_service.download_object(key=key.key, unique_prefix=key.prefix)
+    obj_url = await obj_service.get_object_url(key=key.key, unique_prefix=key.prefix)
     await file_repo.add_file(title=message.text.title(), url=obj_url,
                              owner_id=message.from_user.id, type_=file_meta.type)
 

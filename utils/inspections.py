@@ -26,8 +26,6 @@ def get_file_from_message(message: Message) -> FileMeta:
 
 def _get_file_descriptor(telegram_file_type: Union[str, Voice, Document, Video, VideoNote, list[PhotoSize]]) -> str:
     if isinstance(telegram_file_type, list):
-        # FIXME: Выбрать одну размерность фотографий
-        # Сохранение оригинальной размерности фотографии
         return [element.file_id for element in telegram_file_type][2]
 
     if getattr(telegram_file_type, "file_id"):

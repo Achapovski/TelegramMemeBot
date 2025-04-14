@@ -16,8 +16,9 @@ class ObjectLoadService:
         key = PrefixKey(key=key, prefix=unique_prefix)
         return await self.obj_client.upload_object(file=obj, key=key)
 
-    async def download_object(self, key: str, unique_prefix: str) -> HttpUrl:
-        obj_url = await self.obj_client.get_object_link(key=key, prefix=unique_prefix)
+    async def get_object_url(self, key: str, unique_prefix: str) -> HttpUrl:
+        key = PrefixKey(key=key, prefix=unique_prefix)
+        obj_url = await self.obj_client.get_object_url(key=key)
         return HttpUrl(url=obj_url)
 
     @staticmethod
