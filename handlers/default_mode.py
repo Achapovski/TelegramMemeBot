@@ -1,5 +1,3 @@
-from typing import Union
-
 from aiogram import Router, Bot
 
 from aiogram.filters import CommandStart, StateFilter, Command
@@ -7,12 +5,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import Message
 
-from clients.S3 import S3Client
+from custom_types import ObjectType
 from handlers.states import FSMStatest, FSMTestState
 from repositories import UserRepository
 from repositories.files import FileRepository
-from services.auto_delete_msg_service import DeleteMessageService
+from schemes.types.types import FileMeta
+from services import ObjectLoadService
 from utils.inspections import get_file_from_message
+from utils.loaders import load_object_from_telegram_api
 
 router = Router()
 
@@ -33,40 +33,38 @@ async def print_welcome(message: Message, usr_repo: UserRepository, state: FSMCo
 
 @router.message(StateFilter(FSMStatest.add_meme))
 async def print_update_type(message: Message, state: FSMContext):
-    data = {**get_file_from_message(message), "prefix": message.from_user.id}
+    file_meta = get_file_from_message(message)
+
+    if file_meta.type is ObjectType.undefined.value:
+        return await message.answer("Please, send me a photo or voice message")
 
     await message.answer("Ok, let`s continue")
-    await state.update_data(data=data)
+    await state.update_data(data={"file_meta": file_meta.model_dump()})
     await state.set_state(FSMStatest.add_meme_title)
 
 
 @router.message(StateFilter(FSMStatest.add_meme_title))
-async def get_meme_title(message: Message, obj_repo: S3Client, state: FSMContext, file_repo: FileRepository, bot: Bot):
-    data = await state.get_data()
+async def get_meme_title(message: Message, obj_service: ObjectLoadService,
+                         state: FSMContext, file_repo: FileRepository, bot: Bot):
+    file_meta = await state.get_data()
+    file_meta = FileMeta(**file_meta.get("file_meta"))
+    file = await load_object_from_telegram_api(bot=bot, file_id=file_meta.id)
 
-    # FIXME: Вынести в отдельную утилиту
-    if data.get("file_extension"):
-        file = await bot.get_file(file_id=data["file"])
-        uploaded_file = await bot.download_file(file_path=file.file_path)
+    key = await obj_service.upload_object(
+        key=message.text.title() + file.name.suffix,
+        obj=file,
+        unique_prefix=str(message.from_user.id)
+    )
 
-        data.update({
-            "file": uploaded_file,
-            "file_extension": file.file_path.split(".")[-1] if data.get("type") != "photo" else "jpeg",
-        })
-
-    prefix, key = await obj_repo.upload_object(**data, file_name=message.text)
-    obj_url = await obj_repo.get_object_from_public_container(key=key, prefix=prefix)
-
-    await file_repo.add_file(title=message.text, url=obj_url, owner_id=message.from_user.id, type_=data.get("type"))
+    obj_url = await obj_service.download_object(key=key.key, unique_prefix=key.prefix)
+    await file_repo.add_file(title=message.text.title(), url=obj_url,
+                             owner_id=message.from_user.id, type_=file_meta.type)
 
     await message.answer("Created!")
     await state.clear()
     await state.set_state(FSMStatest.add_meme)
 
 
-"DEV MOMENT"
-
-
 @router.message(StateFilter(FSMTestState.moke))
-async def test_handler(message: Message, msg_service: DeleteMessageService):
+async def test_handler(message: Message):
     await message.answer("Ok")

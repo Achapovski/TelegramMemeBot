@@ -15,7 +15,7 @@ def build_result_list(objects_list: list[FileDTO]) -> list[InlineQueryResultUnio
         ).get_query_result(
             getattr(ObjectType, element.type.value).value
         ))
-    print(articles)
+    articles.sort(key=lambda x: (str(x.type), x.title), reverse=True)
     return articles
 
 

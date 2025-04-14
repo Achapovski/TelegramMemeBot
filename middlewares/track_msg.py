@@ -3,8 +3,8 @@ from typing import Dict, Callable, Any, Awaitable
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject, Message
 
-from custom_types.message import CustomMessageUpdate
-from services.auto_delete_msg_service import DeleteMessageService
+from custom_types.messages import CustomMessageUpdate
+from services.delete_msg_service import DeleteMessageService
 
 
 class TrackMessageMiddleware(BaseMiddleware):

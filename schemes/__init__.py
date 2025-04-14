@@ -3,6 +3,8 @@ from schemes.models.users import UserDTO, UserCreateScheme
 from schemes.storages import S3ResponseScheme, S3ObjectScheme
 from schemes.models.files import FileDTO, FileCreateCheme
 from schemes.brokers.messages import DeliveryMessageScheme, DeliveryDelMessageScheme
+from schemes.types.types import FileMeta
+
 
 __all__ = [
     "Settings",
@@ -13,5 +15,6 @@ __all__ = [
     "FileDTO",
     "FileCreateCheme",
     "DeliveryDelMessageScheme",
-    "DeliveryMessageScheme"
+    "DeliveryMessageScheme",
+    "FileMeta"
 ]

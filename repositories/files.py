@@ -23,7 +23,7 @@ class FileRepository(Repository):
             insert(self.model).values(**FileCreateCheme(
                 title=title,
                 owner_id=owner_id,
-                url=url,
+                url=str(url),
                 type=type_
             ).model_dump()).on_conflict_do_nothing().returning(self.model)
         )

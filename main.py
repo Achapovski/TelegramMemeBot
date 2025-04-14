@@ -11,7 +11,7 @@ from keyboards.main_menu import main_menu
 from middlewares.track_msg import TrackMessageMiddleware
 from settings import settings
 from database import AsyncDBConnection
-from services.auto_delete_msg_service import DeleteMessageService
+from services import DeleteMessageService, ObjectLoadService
 from middlewares.storage import DBSessionMiddleware, RepositoriesInitMiddleware
 
 
@@ -23,7 +23,9 @@ async def main():
     s3 = S3Client(settings=settings)
     rabbit = RabbitMqClient(settings=settings, exchange=settings.rabbitmq.EXCHANGES.message_deleter)
 
-    dms = DeleteMessageService(settings=settings, storage=cache_storage, broker=rabbit)
+    dms = DeleteMessageService(broker=rabbit)
+    obj_service = ObjectLoadService(obj_client=s3)
+
     bot = Bot(settings.bot.TOKEN)
     dp = Dispatcher(bot=bot, storage=RedisStorage(redis=state_storage.redis))
 
@@ -34,7 +36,7 @@ async def main():
     dp.message.middleware(TrackMessageMiddleware(process_service=dms))
 
     await main_menu(bot)
-    await dp.start_polling(bot, obj_repo=s3, cache_repo=cache_storage, msg_service=dms)
+    await dp.start_polling(bot, obj_repo=s3, cache_repo=cache_storage, msg_service=dms, obj_service=obj_service)
 
 
 if __name__ == "__main__":
