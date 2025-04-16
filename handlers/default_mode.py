@@ -17,14 +17,14 @@ from utils.loaders import load_object_from_telegram_api
 router = Router()
 
 
-@router.message(Command("cancel"), ~StateFilter(default_state))
-async def cancel(message: Message, state: FSMContext):
+@router.message(Command("cancel"))
+async def cancel_process_handler(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("Canceled")
 
 
 @router.message(CommandStart(), StateFilter(default_state))
-async def print_welcome(message: Message, usr_repo: UserRepository, state: FSMContext):
+async def welcome_process_handler(message: Message, usr_repo: UserRepository, state: FSMContext):
     await usr_repo.add_user(user_id=message.from_user.id)
     # await state.set_state(FSMTestState.moke)
     await state.set_state(FSMStatest.add_meme)
@@ -32,8 +32,8 @@ async def print_welcome(message: Message, usr_repo: UserRepository, state: FSMCo
 
 
 @router.message(StateFilter(FSMStatest.add_meme))
-async def print_update_type(message: Message, state: FSMContext):
-    file_meta = get_file_from_message(message)
+async def send_meme_process_handler(message: Message, state: FSMContext):
+    file_meta: FileMeta = get_file_from_message(message)
 
     if file_meta.type is ObjectType.undefined.value:
         return await message.answer("Please, send me a photo or voice message")
@@ -44,11 +44,9 @@ async def print_update_type(message: Message, state: FSMContext):
 
 
 @router.message(StateFilter(FSMStatest.add_meme_title))
-async def get_meme_title(message: Message, obj_service: ObjectLoadService,
-                         state: FSMContext, file_repo: FileRepository, bot: Bot):
-    file_meta = await state.get_data()
-    # FIXME: Получать конкретно file_meta через state.get_value()
-    file_meta = FileMeta(**file_meta.get("file_meta"))
+async def send_meme_title_process_handler(message: Message, obj_service: ObjectLoadService,
+                                          state: FSMContext, file_repo: FileRepository, bot: Bot):
+    file_meta = FileMeta(**await state.get_value("file_meta"))
     file = await load_object_from_telegram_api(bot=bot, file_id=file_meta.id)
 
     key = await obj_service.upload_object(
@@ -57,6 +55,7 @@ async def get_meme_title(message: Message, obj_service: ObjectLoadService,
         unique_prefix=str(message.from_user.id)
     )
 
+    # FIXME: Реализовать транзакцию с добавлением файла в БД и SSS
     obj_url = await obj_service.get_object_url(key=key.key, unique_prefix=key.prefix)
     await file_repo.add_file(title=message.text.title(), url=obj_url,
                              owner_id=message.from_user.id, type_=file_meta.type)
@@ -64,6 +63,11 @@ async def get_meme_title(message: Message, obj_service: ObjectLoadService,
     await message.answer("Created!")
     await state.clear()
     await state.set_state(FSMStatest.add_meme)
+
+
+@router.message()
+async def track_other_message_process_handler(message: Message):
+    await message.answer("You should be on work state of bot ('Send me /start')")
 
 
 @router.message(StateFilter(FSMTestState.moke))

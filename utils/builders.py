@@ -1,9 +1,13 @@
+from mimetypes import guess_type
+
 from aiogram.types import InlineQueryResultVoice, InlineQueryResultArticle, InlineQueryResultUnion, \
     InputTextMessageContent, InlineQueryResultDocument, InlineQueryResultVideo, InlineQueryResultPhoto
 
 from custom_types import ObjectType
 from schemes import FileDTO
 from multipledispatch import dispatch
+
+from utils.loaders import is_valid_mime_type
 
 
 def build_result_list(objects_list: list[FileDTO]) -> list[InlineQueryResultUnion]:
@@ -36,7 +40,7 @@ class DispatchedInlineQueryResult:
         return InlineQueryResultVideo(
             mime_type="video/mp4",
             video_url=self.obj.url,
-            thumbnail_url="JPEG",
+            thumbnail_url=self.obj.url.replace(".mp4", ".PNG"),
             **self._get_id_title_data()
         )
 
@@ -52,8 +56,8 @@ class DispatchedInlineQueryResult:
     @dispatch(type(ObjectType.document.value))
     def get_query_result(self, value):
         return InlineQueryResultDocument(
+            mime_type=self.document_mime_type,
             document_url=self.obj.url,
-            mime_type='application/pdf',
             **self._get_id_title_data()
         )
 
@@ -80,10 +84,13 @@ class DispatchedInlineQueryResult:
         print("Undefined type")
         return
 
-    @dispatch(object)
-    def get_query_result(self, value):
-        print("Dispatcher: ", value)
-        return
+    @property
+    def document_mime_type(self):
+        type_, encoding = guess_type(self.obj.url)
+        if is_valid_mime_type(self.obj.url):
+            return type_
+        return "application/zip"
 
     def _get_id_title_data(self) -> dict[str, str]:
         return {"id": self.element_id, "title": self.obj.title}
+
