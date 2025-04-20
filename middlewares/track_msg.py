@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Callable, Any, Awaitable
 
 from aiogram import BaseMiddleware, Bot
@@ -23,4 +24,5 @@ class TrackMessageMiddleware(BaseMiddleware):
         custom_message.as_(bot)
         handler = await handler(custom_message, data)
         await self.process_service.track_message(event.chat.id, event.message_id)
+        logging.debug("Tracked message chat_id: %s, message_id: %s" % (event.chat.id, event.message_id))
         return handler

@@ -1,6 +1,8 @@
+import logging
 from dataclasses import dataclass
 
 from schemes import Settings
+from sqlalchemy.exc import DatabaseError, TimeoutError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker, AsyncEngine
 
 
@@ -12,7 +14,10 @@ class AsyncDBConnection:
         return self.get_async_session()
 
     def get_db_engine(self) -> AsyncEngine:
-        return create_async_engine(url=str(self.settings.db.DSN))
+        try:
+            return create_async_engine(url=str(self.settings.db.DSN))
+        except (DatabaseError, TimeoutError):
+            logging.critical("The database connection was rejected")
 
     def get_async_session(self) -> async_sessionmaker[AsyncSession]:
         return async_sessionmaker(bind=self.get_db_engine(), expire_on_commit=False)

@@ -1,6 +1,8 @@
+import logging
 from dataclasses import dataclass
 
 import aiormq
+from aiormq.exceptions import AMQPException, ConnectionChannelError, ChannelNotFoundEntity
 
 from schemes import Settings
 from schemes.settings import BasicRabbitExchange
@@ -17,7 +19,10 @@ class RabbitMqClient:
 
     async def get_broker_channel(self) -> aiormq.abc.AbstractChannel:
         connection = await self.get_broker_connection()
-        return await connection.channel()
+        try:
+            return await connection.channel()
+        except (ConnectionChannelError, AMQPException) as err:
+            logging.critical("Channel creation error. %s" % err)
 
     async def declare_exchanger(self) -> aiormq.abc.Exchange.DeclareOk:
         channel = await self.get_broker_channel()

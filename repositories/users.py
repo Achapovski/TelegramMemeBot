@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Type
 
@@ -22,6 +23,7 @@ class UserRepository(Repository):
             insert(self.model).values(id=user_id).on_conflict_do_nothing().returning(self.model)
         )
         await self.db_session.commit()
+        logging.info("A new user has been created")
 
         if user_data := db_user.scalar():
             return UserDTO.model_validate(user_data, from_attributes=True)

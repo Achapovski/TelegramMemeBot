@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Callable, Any, Awaitable
 
 from aiogram import BaseMiddleware
@@ -22,6 +23,7 @@ class DBSessionMiddleware(BaseMiddleware):
     ):
         async with self.db_session(expire_on_commit=False) as session:
             data["db_session"] = session
+            logging.debug("Init database connect")
             return await handler(event, data)
 
 
@@ -35,5 +37,5 @@ class RepositoriesInitMiddleware(BaseMiddleware):
         if db_session := data.get("db_session"):
             data["usr_repo"] = UserRepository(db_session=db_session, settings=settings, model=User)
             data["file_repo"] = FileRepository(db_session=db_session, settings=settings, model=File)
-
+            logging.debug("Init repositories")
         return await handler(event, data)

@@ -1,8 +1,10 @@
 import json
+import logging
 from dataclasses import dataclass
 from typing import Union
 
 import redis.asyncio as redis
+from redis.exceptions import ConnectionError
 from redis.asyncio.client import Pipeline
 
 from schemes import Settings
@@ -26,7 +28,11 @@ class RedisClient:
 
     @property
     def redis(self) -> redis.client.Redis:
-        return redis.Redis(host=self.host, port=self.port, db=self.db, decode_responses=self._decode_response)
+        try:
+            return redis.Redis(host=self.host, port=self.port, db=self.db, decode_responses=self._decode_response)
+        except ConnectionError as err:
+            logging.critical("Redis connection error. %s" % "SGASG")
+            raise err
 
     async def set_value(self, key: str, value: RedisValueType) -> RedisValueType:
         data = json.dumps(value)
@@ -56,8 +62,7 @@ class RedisClient:
 
     async def del_all_values(self):
         if not await self.get_all_values():
-            # FIXME: Логгировать отсутствие значений
-            print(__name__, "No values to delete")
+            logging.debug("No values for deleting")
             return
         return await self.redis.delete(*await self.get_all_values())
 

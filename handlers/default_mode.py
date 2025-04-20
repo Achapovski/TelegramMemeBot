@@ -1,9 +1,12 @@
+import logging
+
 from aiogram import Router, Bot
 
 from aiogram.filters import CommandStart, StateFilter, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import Message
+from fluentogram import TranslatorRunner
 
 from custom_types import ObjectType
 from handlers.states import FSMStatest, FSMTestState
@@ -18,7 +21,8 @@ router = Router()
 
 
 @router.message(Command("cancel"))
-async def cancel_process_handler(message: Message, state: FSMContext):
+async def cancel_process_handler(message: Message, state: FSMContext, i18n: TranslatorRunner):
+    await message.answer(i18n.message())
     await state.clear()
     await message.answer("Canceled")
 
@@ -49,16 +53,19 @@ async def send_meme_title_process_handler(message: Message, obj_service: ObjectL
     file_meta = FileMeta(**await state.get_value("file_meta"))
     file = await load_object_from_telegram_api(bot=bot, file_id=file_meta.id)
 
-    key = await obj_service.upload_object(
-        key=message.text.title() + file.name.suffix,
-        obj=file,
-        unique_prefix=str(message.from_user.id)
-    )
+    try:
+        key = await obj_service.upload_object(
+            key=message.text.title() + file.name.suffix,
+            obj=file,
+            unique_prefix=str(message.from_user.id)
+        )
 
-    # FIXME: Реализовать транзакцию с добавлением файла в БД и SSS
-    obj_url = await obj_service.get_object_url(key=key.key, unique_prefix=key.prefix)
-    await file_repo.add_file(title=message.text.title(), url=obj_url,
-                             owner_id=message.from_user.id, type_=file_meta.type)
+        # FIXME: Реализовать транзакцию с добавлением файла в БД и SSS
+        obj_url = await obj_service.get_object_url(key=key.key, unique_prefix=key.prefix)
+        await file_repo.add_file(title=message.text.title(), url=obj_url,
+                                 owner_id=message.from_user.id, type_=file_meta.type)
+    except (Exception, ) as err:
+        logging.error("Error on create/update object %s" % err)
 
     await message.answer("Created!")
     await state.clear()

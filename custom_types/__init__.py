@@ -18,4 +18,9 @@ class PrefixKey:
         return self.__repr__()
 
 
-__all__ = ["ObjectType", "CustomMessageUpdate", "PrefixKey", "FileMeta"]
+__all__ = [
+    "ObjectType",
+    "CustomMessageUpdate",
+    "PrefixKey",
+    "FileMeta"
+]

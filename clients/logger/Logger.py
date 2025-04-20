@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import os
+from logging.handlers import RotatingFileHandler
 from functools import lru_cache
 from pathlib import Path
 from sys import stderr
@@ -25,14 +26,14 @@ class Logger:
 
     def __init__(
             self,
-            log_level: Literal["NOTSET", "INFO", "DEBUG", "WARNING", "ERROR", "CRITICAL"],
-            logger_name: str,
+            log_level: Literal["NOTSET", "INFO", "DEBUG", "WARNING", "ERROR", "CRITICAL"] = "DEBUG",
             filemode: Literal["a", "w"] = "a",
             config_file: str = None,
             filename: str = None,
             stream: TextIOWrapper = None,
             date_format: str = None,
-            file_config_name: str = None
+            file_config_name: str = None,
+            max_file_size: int = 10,
     ):
         self.log_level = log_level
         self.filemode = filemode
@@ -43,10 +44,9 @@ class Logger:
         self.date_format = ("%Y-%m-%d %H:%M:%S", date_format)[bool(date_format)]
         self.format = ("[%(asctime)s]: [%(module)s] [(func name: %(funcName)s, line %(lineno)d)]"
                        " #%(levelname)s: %(name)s - %(message)s")
+        self.max_file_size = max_file_size
         self.file_config_name = Path(file_config_name if file_config_name else "")
-        self.logger = self.get_logger(logger_name)
         self._default_file_config_name = Path("logging_config.yml")
-        self.load_logging_config(file_config_name=self.file_config_name)
 
     def init_base_config(self):
         return logging.basicConfig(
@@ -59,13 +59,18 @@ class Logger:
 
     def get_file_handler(self, file_name: str = None):
         file_name = (self.file_name, file_name)[bool(file_name)]
-        return logging.FileHandler(encoding=self.encoding, filename=file_name, mode=self.filemode)
+        return RotatingFileHandler(
+            encoding=self.encoding,
+            filename=file_name,
+            mode=self.filemode,
+            maxBytes=self.max_file_size
+        )
 
     def get_stderr_handler(self):
         return logging.StreamHandler(stream=self.stream)
 
     @lru_cache(maxsize=1)
-    def load_logging_config(self, file_config_name: Path | None) -> None:
+    def load_config(self, file_config_name: Path | None = None) -> None:
         if file_config_name and self._is_file_config_exist(self.file_config_name):
             return logging.config.dictConfig(
                 config=self.read_logging_config_file(config_file=file_config_name)
@@ -77,10 +82,6 @@ class Logger:
             )
 
         self.init_base_config()
-
-    @staticmethod
-    def get_logger(name: str):
-        return logging.getLogger(name)
 
     @staticmethod
     def read_logging_config_file(config_file: Path) -> dict:

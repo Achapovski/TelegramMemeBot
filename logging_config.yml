@@ -3,24 +3,24 @@ disable_existing_loggers: True
 
 formatters:
   default:
-    format: '[%(asctime)s]: [%(module)s] #%(levelname)s: %(name)s - %(message)s'
+    format: '[%(asctime)s]: [ %(module)-10s ] #%(levelname)-6s: %(name)-20s -  %(message)s'
 
   detail_info:
-    format: '[%(asctime)s]: [%(module)s][(func name: %(funcName)s, line %(lineno)d)] #%(levelname)s: %(name)s - %(message)s'
+    format: '[%(asctime)s]: [ %(module)-10s ][ (func name: %(funcName)-15s line %(lineno)-4d) ] #%(levelname)-6s: %(name)-20s -  %(message)s'
 
 
 filters:
   critical_filter:
-    (): app_logging.log_filters.CriticalLogFilter
+    (): clients.logger.filters.CriticalLogFilter
 
   error_filter:
-    (): app_logging.log_filters.ErrorLogFilter
+    (): clients.logger.filters.ErrorLogFilter
 
   warning_filter:
-    (): app_logging.log_filters.WarningLogFilter
+    (): clients.logger.filters.WarningLogFilter
 
   debug_info_filter:
-    (): app_logging.log_filters.DebugInfoLogFilter
+    (): clients.logger.filters.DebugInfoLogFilter
 
 
 handlers:
@@ -38,25 +38,31 @@ handlers:
     formatter: default
     stream: ext://sys.stdout
 
-  debug_info:
-    class: logging.FileHandler
+  debug_info_file:
+    class: logging.handlers.RotatingFileHandler
     filename: logs/debug_info.log
     formatter: default
     mode: a
+    maxBytes: 5000000
+    backupCount: 2
     filters: [debug_info_filter]
 
   error_file:
-    class: logging.FileHandler
+    class: logging.handlers.RotatingFileHandler
+    formatter: detail_info
     filename: logs/error.log
     mode: a
-    formatter: detail_info
+    maxBytes: 5000000
+    backupCount: 2
     filters: [error_filter]
 
   critical_file:
-    class: logging.FileHandler
+    class: logging.handlers.RotatingFileHandler
+    formatter: detail_info
     filename: logs/critical.log
     mode: a
-    formatter: detail_info
+    maxBytes: 5000000
+    backupCount: 2
     filters: [critical_filter]
 
 
@@ -67,24 +73,25 @@ loggers:
 
   aiogram.dispatcher:
     level: 'INFO'
-    handlers: [debug_info, error_file, critical_file, stderr]
+    handlers: [debug_info_file, error_file, critical_file]
 
   aiogram.event:
     level: 'INFO'
-    handlers: [debug_info, error_file, critical_file, stderr]
+    handlers: [debug_info_file, error_file, critical_file]
 
   aiogram.middlewares:
     level: 'INFO'
-    handlers: [debug_info, error_file, critical_file, stderr]
+    handlers: [debug_info_file, error_file, critical_file]
 
   aiogram.webhook:
     level: 'INFO'
-    handlers: [debug_info, error_file, critical_file, stderr]
+    handlers: [debug_info_file, error_file, critical_file]
 
   aiogram.scene:
     level: 'INFO'
-    handlers: [debug_info, error_file, critical_file, stderr]
+    handlers: [debug_info_file, error_file, critical_file]
 
 root:
+  level: DEBUG
   formatter: default
-  handlers: [default, debug_info]
+  handlers: [stderr, debug_info_file, error_file, critical_file]
