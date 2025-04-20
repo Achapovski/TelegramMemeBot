@@ -55,5 +55,4 @@ class S3Client:
 
     async def download_all_objects(self, prefix: str) -> list:
         obj_names = await self.get_all_objects(prefix=prefix)
-        async with self.get_client() as client:
-            return [await self.download_object(prefix=prefix, key=key) for key in obj_names]
+        return [await self.download_object(prefix=prefix, key=key) for key in obj_names]

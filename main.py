@@ -3,19 +3,24 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 
+from clients.Logger import Logger
 from clients.RabbitMq import RabbitMqClient
 from clients.Redis import RedisClient
-from handlers import routers
 from clients.S3 import S3Client
+from handlers import routers
 from keyboards.main_menu import main_menu
-from middlewares.track_msg import TrackMessageMiddleware
 from settings import settings
 from database import AsyncDBConnection
 from services import DeleteMessageService, ObjectLoadService
+
+from middlewares.track_msg import TrackMessageMiddleware
 from middlewares.storage import DBSessionMiddleware, RepositoriesInitMiddleware
 
 
 async def main():
+    logger = Logger(log_level="INFO", file_config_name="config_.yml", logger_name=__name__)
+    logger.logger.error("WARNING")
+
     state_storage = RedisClient(settings=settings, DB_NUMBER=settings.redis.DB_STATE_NUMBER)
     cache_storage = RedisClient(settings=settings, DB_NUMBER=settings.redis.DB_STORAGE_NUMBER)
 

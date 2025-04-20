@@ -9,7 +9,6 @@ from zipfile import ZipFile, ZIP_DEFLATED
 async def load_object_from_telegram_api(bot: Bot, file_id: str) -> BinaryIO:
     file = await bot.get_file(file_id=file_id)
     file_path = Path(file.file_path)
-    print(__name__, file_path.stem, file_path.suffix)
     uploaded_file = await bot.download_file(file_path=file.file_path)
 
     if not is_valid_mime_type(file_path.name):

@@ -1,0 +1,90 @@
+version: 1
+disable_existing_loggers: True
+
+formatters:
+  default:
+    format: '[%(asctime)s]: [%(module)s] #%(levelname)s: %(name)s - %(message)s'
+
+  detail_info:
+    format: '[%(asctime)s]: [%(module)s][(func name: %(funcName)s, line %(lineno)d)] #%(levelname)s: %(name)s - %(message)s'
+
+
+filters:
+  critical_filter:
+    (): app_logging.log_filters.CriticalLogFilter
+
+  error_filter:
+    (): app_logging.log_filters.ErrorLogFilter
+
+  warning_filter:
+    (): app_logging.log_filters.WarningLogFilter
+
+  debug_info_filter:
+    (): app_logging.log_filters.DebugInfoLogFilter
+
+
+handlers:
+  default:
+    class: logging.StreamHandler
+    formatter: default
+
+  stderr:
+    class: logging.StreamHandler
+    formatter: default
+    stream: ext://sys.stderr
+
+  stdout:
+    class: logging.StreamHandler
+    formatter: default
+    stream: ext://sys.stdout
+
+  debug_info:
+    class: logging.FileHandler
+    filename: logs/debug_info.log
+    formatter: default
+    mode: a
+    filters: [debug_info_filter]
+
+  error_file:
+    class: logging.FileHandler
+    filename: logs/error.log
+    mode: a
+    formatter: detail_info
+    filters: [error_filter]
+
+  critical_file:
+    class: logging.FileHandler
+    filename: logs/critical.log
+    mode: a
+    formatter: detail_info
+    filters: [critical_filter]
+
+
+loggers:
+  __main__:
+    level: INFO
+    handlers: [stderr, error_file, critical_file]
+
+  aiogram.dispatcher:
+    level: 'INFO'
+    handlers: [debug_info, error_file, critical_file, stderr]
+
+  aiogram.event:
+    level: 'INFO'
+    handlers: [debug_info, error_file, critical_file, stderr]
+
+  aiogram.middlewares:
+    level: 'INFO'
+    handlers: [debug_info, error_file, critical_file, stderr]
+
+  aiogram.webhook:
+    level: 'INFO'
+    handlers: [debug_info, error_file, critical_file, stderr]
+
+  aiogram.scene:
+    level: 'INFO'
+    handlers: [debug_info, error_file, critical_file, stderr]
+
+root:
+  formatter: default
+  handlers: [default, debug_info]
