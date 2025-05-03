@@ -15,7 +15,7 @@ class AsyncDBConnection:
 
     def get_db_engine(self) -> AsyncEngine:
         try:
-            return create_async_engine(url=str(self.settings.db.DSN))
+            return create_async_engine(url=str(self.settings.db.dsn))
         except (DatabaseError, TimeoutError):
             logging.critical("The database connection was rejected")
 

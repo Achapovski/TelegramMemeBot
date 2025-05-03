@@ -5,8 +5,8 @@ from schemes import Settings
 
 
 @lru_cache()
-def get_settings(config_file_name: str = "config") -> Settings:
-    with open(f"{config_file_name}.yml") as file:
+def get_settings(config_file_name: str = "config.yml") -> Settings:
+    with open(f"{config_file_name}") as file:
         data = safe_load(stream=file)
     return Settings.model_validate(data)
 
