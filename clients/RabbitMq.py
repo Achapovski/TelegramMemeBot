@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 
 import aiormq
-from aiormq.exceptions import AMQPException, ConnectionChannelError, ChannelNotFoundEntity
+from aiormq.exceptions import AMQPException, ConnectionChannelError
 
 from schemes import Settings
 from schemes.settings import BasicRabbitExchange
@@ -15,7 +15,7 @@ class RabbitMqClient:
     exchange: BasicRabbitExchange
 
     async def get_broker_connection(self) -> aiormq.abc.AbstractConnection:
-        return await aiormq.connect(url=str(self.settings.rabbitmq.AMQP_DSN))
+        return await aiormq.connect(url=str(self.settings.rabbitmq.dsn.unicode_string()))
 
     async def get_broker_channel(self) -> aiormq.abc.AbstractChannel:
         connection = await self.get_broker_connection()
@@ -33,7 +33,9 @@ class RabbitMqClient:
 
     async def publish_message(self, message: DeliveryMessageScheme):
         channel = await self.get_broker_channel()
+        await self.declare_exchanger()
         await channel.basic_publish(
             body=message.model_dump_json().encode(),
             exchange=self.exchange.name
         )
+        # self.get_broker_connection().close()

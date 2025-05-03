@@ -25,3 +25,8 @@ class LocalesEnum(Enum):
 
     def __str__(self):
         return self.name
+
+
+class DialogsTypeEnum(Enum):
+    default_state = "FSM Context"
+    aiogram_dialog = "Aiogram Dialogs"

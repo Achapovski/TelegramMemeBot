@@ -11,6 +11,10 @@ async def main_menu(bot: Bot):
         BotCommand(
             command="/cancel",
             description="Reset bot state."
+        ),
+        BotCommand(
+            command="/settings",
+            description="Bot settings."
         )
     ])
 

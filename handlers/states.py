@@ -1,10 +1,8 @@
 from aiogram.fsm.state import StatesGroup, State
 
 
-class FSMStatest(StatesGroup):
-    add_meme = State()
+class WorkingDialogStates(StatesGroup):
+    # pre_start = State()
+    add_meme_object = State()
     add_meme_title = State()
-
-
-class FSMTestState(StatesGroup):
-    moke = State()
+    get_settings = State()

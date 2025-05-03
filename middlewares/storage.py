@@ -5,9 +5,9 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from models import User, File
-from repositories import UserRepository
-from repositories.files import FileRepository
+from models import User, File, UserSetting
+from repositories import UserRepository, FileRepository, UserSettingsRepository, UserInfoRepository
+
 from settings import settings
 
 
@@ -35,7 +35,11 @@ class RepositoriesInitMiddleware(BaseMiddleware):
             data: Dict[str, Any]
     ):
         if db_session := data.get("db_session"):
-            data["usr_repo"] = UserRepository(db_session=db_session, settings=settings, model=User)
+            user_settings = UserSettingsRepository(db_session=db_session, settings=settings, model=UserSetting)
+            user_info = UserInfoRepository(db_session=db_session, settings=settings, model=User)
             data["file_repo"] = FileRepository(db_session=db_session, settings=settings, model=File)
+            # data["usr_repo"] = UserRepository(db_session=db_session, settings=user_settings, info=user_info)
+            data["usr_repo"] = UserRepository(db_session=db_session, info=user_info, settings=user_settings)
+
             logging.debug("Init repositories")
         return await handler(event, data)

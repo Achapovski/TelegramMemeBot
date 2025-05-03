@@ -1,5 +1,9 @@
-from repositories.users import UserRepository
+from repositories.files import FileRepository
+from repositories.users import UserInfoRepository, UserSettingsRepository, UserRepository
 
-# from repositories.files import File
-
-__all__ = ["UserRepository"]
+__all__ = [
+    "UserRepository",
+    "FileRepository",
+    "UserInfoRepository",
+    "UserSettingsRepository"
+]
